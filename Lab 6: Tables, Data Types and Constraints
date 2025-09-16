@@ -1,0 +1,94 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE student_db;
+CREATE DATABASE
+postgres=# CREATE DATABASE university;
+CREATE DATABASE
+postgres=# \c student_db
+You are now connected to database "student_db" as user "postgres".
+student_db=# \dt
+Did not find any relations.
+student_db=# CREATE TABLE students (student_id SERIAL PRIMARY KEY,first_name VARCHAR(50) NOT NULL,last_name VARCHAR(50) NOT NULL,email VARCHAR(100) UNIQUE NOT NULL,faculty VARCHAR(100),birth_date DATE CHECK (birth_date <= CURRENT_DATE));
+CREATE TABLE
+student_db=# \d students
+                                          Table "public.students"
+   Column   |          Type          | Collation | Nullable |                   Default
+------------+------------------------+-----------+----------+----------------------------------------------
+ student_id | integer                |           | not null | nextval('students_student_id_seq'::regclass)
+ first_name | character varying(50)  |           | not null |
+ last_name  | character varying(50)  |           | not null |
+ email      | character varying(100) |           | not null |
+ faculty    | character varying(100) |           |          |
+ birth_date | date                   |           |          |
+Indexes:
+    "students_pkey" PRIMARY KEY, btree (student_id)
+    "students_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "students_birth_date_check" CHECK (birth_date <= CURRENT_DATE)
+
+
+student_db=# INSERT INTO students (first_name, last_name, email, faculty, birth_date)VALUES ('Valeriya', 'Pan', 'valeriya.pan@example.com', 'AMI', '2005-10-07');
+INSERT 0 1
+student_db=# SELECT * FROM students;
+ student_id | first_name | last_name |          email           | faculty | birth_date
+------------+------------+-----------+--------------------------+---------+------------
+          1 | Valeriya   | Pan       | valeriya.pan@example.com | AMI     | 2005-10-07
+(1 row)
+
+
+student_db=# ALTER TABLE students ADD COLUMN phone VARCHAR(20);
+ALTER TABLE
+student_db=# \d students
+                                          Table "public.students"
+   Column   |          Type          | Collation | Nullable |                   Default
+------------+------------------------+-----------+----------+----------------------------------------------
+ student_id | integer                |           | not null | nextval('students_student_id_seq'::regclass)
+ first_name | character varying(50)  |           | not null |
+ last_name  | character varying(50)  |           | not null |
+ email      | character varying(100) |           | not null |
+ faculty    | character varying(100) |           |          |
+ birth_date | date                   |           |          |
+ phone      | character varying(20)  |           |          |
+Indexes:
+    "students_pkey" PRIMARY KEY, btree (student_id)
+    "students_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "students_birth_date_check" CHECK (birth_date <= CURRENT_DATE)
+
+
+student_db=# ALTER TABLE students DROP COLUMN phone;
+ALTER TABLE
+student_db=# ALTER TABLE students RENAME COLUMN faculty TO department;
+ALTER TABLE
+student_db=# ALTER TABLE students RENAME TO student;
+ALTER TABLE
+student_db=# CREATE TABLE faculty (faculty_id SERIAL PRIMARY KEY,faculty_name VARCHAR(100) UNIQUE NOT NULL);
+CREATE TABLE
+student_db=# ALTER TABLE student
+student_db-# ADD CONSTRAINT fk_faculty
+student_db-# FOREIGN KEY (faculty_id) REFERENCES faculty(faculty_id);
+ALTER TABLE
+student_db=# INSERT INTO faculty (faculty_name) VALUES ('AMI');
+INSERT 0 1
+student_db=# UPDATE student SET faculty_id = 1 WHERE student_id = 1;
+UPDATE 1
+student_db=# CREATE TEMP TABLE temp_students (id SERIAL PRIMARY KEY,name VARCHAR(50));
+CREATE TABLE
+student_db=# DROP TABLE IF EXISTS student;
+DROP TABLE
+student_db=# DROP TABLE IF EXISTS faculty;
+DROP TABLE
+student_db=# \c postgres
+You are now connected to database "postgres" as user "postgres".
+postgres=# DROP DATABASE university;
+DROP DATABASE
+postgres=# \q
