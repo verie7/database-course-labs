@@ -1,0 +1,89 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE relationships_lab;
+CREATE DATABASE
+postgres=# \c relationships_lab
+You are now connected to database "relationships_lab" as user "postgres".
+relationships_lab=# CREATE TABLE students (
+relationships_lab(#     student_id SERIAL PRIMARY KEY,
+relationships_lab(#     name VARCHAR(100) NOT NULL,
+relationships_lab(#     email VARCHAR(150) UNIQUE NOT NULL
+relationships_lab(# );
+CREATE TABLE
+relationships_lab=# CREATE TABLE courses (
+relationships_lab(#     course_id SERIAL PRIMARY KEY,
+relationships_lab(#     course_name VARCHAR(100) NOT NULL,
+relationships_lab(#     instructor VARCHAR(100)
+relationships_lab(# );
+CREATE TABLE
+relationships_lab=# CREATE TABLE enrollments (
+relationships_lab(#     enrollment_id SERIAL PRIMARY KEY,
+relationships_lab(#     student_id INTEGER REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
+relationships_lab(#     course_id INTEGER REFERENCES courses(course_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+relationships_lab(#     semester VARCHAR(20),
+relationships_lab(#     grade CHAR(2)
+relationships_lab(# );
+CREATE TABLE
+relationships_lab=# INSERT INTO students (name, email) VALUES
+relationships_lab-# ('Valeriya Pan', 'valeriya.pan@auca.kg'),
+relationships_lab-# ('Alice Johnson', 'alice@auca.kg'),
+relationships_lab-# ('Bob Smith', 'bob@auca.kg');
+INSERT 0 3
+relationships_lab=# INSERT INTO courses (course_name, instructor) VALUES
+relationships_lab-# ('Database Systems', 'Dr. Anderson'),
+relationships_lab-# ('Computer Networks', 'Prof. Karimov');
+INSERT 0 2
+relationships_lab=# INSERT INTO enrollments (student_id, course_id, semester, grade) VALUES
+relationships_lab-# (1, 1, '2024-Fall', 'A'),
+relationships_lab-# (1, 2, '2024-Fall', 'B+'),
+relationships_lab-# (2, 1, '2024-Fall', 'A-');
+INSERT 0 3
+relationships_lab=# SELECT e.enrollment_id, s.name AS student, c.course_name, e.semester, e.grade
+relationships_lab-# FROM enrollments e
+relationships_lab-# JOIN students s ON e.student_id = s.student_id
+relationships_lab-# JOIN courses c ON e.course_id = c.course_id;
+ enrollment_id |    student    |    course_name    | semester  | grade
+---------------+---------------+-------------------+-----------+-------
+             1 | Valeriya Pan  | Database Systems  | 2024-Fall | A
+             2 | Valeriya Pan  | Computer Networks | 2024-Fall | B+
+             3 | Alice Johnson | Database Systems  | 2024-Fall | A-
+(3 rows)
+
+
+relationships_lab=# DELETE FROM students WHERE student_id = 1;
+DELETE 1
+relationships_lab=# SELECT * FROM enrollments;
+ enrollment_id | student_id | course_id | semester  | grade
+---------------+------------+-----------+-----------+-------
+             3 |          2 |         1 | 2024-Fall | A-
+(1 row)
+
+
+relationships_lab=# CREATE TABLE student_profiles (
+relationships_lab(#     profile_id SERIAL PRIMARY KEY,
+relationships_lab(#     student_id INTEGER UNIQUE REFERENCES students(student_id) ON DELETE CASCADE,
+relationships_lab(#     phone VARCHAR(20),
+relationships_lab(#     address TEXT
+relationships_lab(# );
+CREATE TABLE
+relationships_lab=# CREATE TABLE instructors (
+relationships_lab(#     instructor_id SERIAL PRIMARY KEY,
+relationships_lab(#     instructor_name VARCHAR(100)
+relationships_lab(# );
+CREATE TABLE
+relationships_lab=#
+relationships_lab=# CREATE TABLE instructor_courses (
+relationships_lab(#     instructor_id INTEGER REFERENCES instructors(instructor_id) ON DELETE CASCADE,
+relationships_lab(#     course_id INTEGER REFERENCES courses(course_id) ON DELETE CASCADE,
+relationships_lab(#     PRIMARY KEY (instructor_id, course_id)
+relationships_lab(# );
+CREATE TABLE
