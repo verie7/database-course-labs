@@ -1,0 +1,90 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE library_design;
+CREATE DATABASE
+postgres=# \c library_design
+You are now connected to database "library_design" as user "postgres".
+library_design=# CREATE TABLE authors (
+library_design(#     author_id SERIAL PRIMARY KEY,
+library_design(#     author_name VARCHAR(100) NOT NULL
+library_design(# );
+CREATE TABLE
+library_design=# CREATE TABLE books (
+library_design(#     book_id SERIAL PRIMARY KEY,
+library_design(#     title VARCHAR(150) NOT NULL,
+library_design(#     publication_year INT,
+library_design(#     genre VARCHAR(50)
+library_design(# );
+CREATE TABLE
+library_design=# CREATE TABLE book_authors (
+library_design(#     book_id INT REFERENCES books(book_id) ON DELETE CASCADE,
+library_design(#     author_id INT REFERENCES authors(author_id) ON DELETE CASCADE,
+library_design(#     PRIMARY KEY (book_id, author_id)
+library_design(# );
+CREATE TABLE
+library_design=# CREATE TABLE members (
+library_design(#     member_id SERIAL PRIMARY KEY,
+library_design(#     name VARCHAR(100) NOT NULL,
+library_design(#     email VARCHAR(150) UNIQUE NOT NULL,
+library_design(#     registration_date DATE DEFAULT CURRENT_DATE
+library_design(# );
+CREATE TABLE
+library_design=# CREATE TABLE loans (
+library_design(#     loan_id SERIAL PRIMARY KEY,
+library_design(#     book_id INT REFERENCES books(book_id) ON DELETE RESTRICT,
+library_design(#     member_id INT REFERENCES members(member_id) ON DELETE CASCADE,
+library_design(#     loan_date DATE DEFAULT CURRENT_DATE,
+library_design(#     return_date DATE,
+library_design(#     due_date DATE,
+library_design(#     fee DECIMAL(5,2) DEFAULT 0
+library_design(# );
+CREATE TABLE
+library_design=# INSERT INTO authors (author_name) VALUES
+library_design-# ('J.K. Rowling'),
+library_design-# ('George Orwell'),
+library_design-# ('F. Scott Fitzgerald');
+INSERT 0 3
+library_design=#
+library_design=# INSERT INTO books (title, publication_year, genre) VALUES
+library_design-# ('Harry Potter', 1997, 'Fantasy'),
+library_design-# ('1984', 1949, 'Dystopian'),
+library_design-# ('The Great Gatsby', 1925, 'Classic');
+INSERT 0 3
+library_design=#
+library_design=# INSERT INTO book_authors VALUES
+library_design-# (1, 1),
+library_design-# (2, 2),
+library_design-# (3, 3);
+INSERT 0 3
+library_design=#
+library_design=# INSERT INTO members (name, email) VALUES
+library_design-# ('Valeriya Pan', 'valeriya.pan@auca.kg'),
+library_design-# ('Alice Johnson', 'alice@auca.kg');
+INSERT 0 2
+library_design=#
+library_design=# INSERT INTO loans (book_id, member_id, loan_date, due_date, fee)
+library_design-# VALUES
+library_design-# (1, 1, '2025-10-01', '2025-10-15', 0),
+library_design-# (2, 2, '2025-10-05', '2025-10-20', 0);
+INSERT 0 2
+library_design=# SELECT l.loan_id, m.name AS member, b.title AS book, l.loan_date, l.due_date
+library_design-# FROM loans l
+library_design-# JOIN members m ON l.member_id = m.member_id
+library_design-# JOIN books b ON l.book_id = b.book_id;
+ loan_id |    member     |     book     | loan_date  |  due_date
+---------+---------------+--------------+------------+------------
+       1 | Valeriya Pan  | Harry Potter | 2025-10-01 | 2025-10-15
+       2 | Alice Johnson | 1984         | 2025-10-05 | 2025-10-20
+(2 rows)
+
+
+library_design=#
