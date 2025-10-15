@@ -1,0 +1,77 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# DROP TABLE IF EXISTS employees;
+DROP TABLE
+postgres=#
+postgres=# CREATE TABLE employees (
+postgres(#     employee_id SERIAL PRIMARY KEY,
+postgres(#     first_name VARCHAR(50),
+postgres(#     last_name VARCHAR(50),
+postgres(#     department VARCHAR(50),
+postgres(#     salary INT
+postgres(# );
+CREATE TABLE
+postgres=#
+postgres=# INSERT INTO employees (first_name, last_name, department, salary) VALUES
+postgres-# ('Valeriya', 'Pan', 'Engineering', 90000),
+postgres-# ('Alice', 'Johnson', 'Engineering', 87000),
+postgres-# ('Bob', 'Smith', 'Sales', 76000),
+postgres-# ('Carol', 'Davis', 'Sales', 82000),
+postgres-# ('David', 'Lee', 'Marketing', 71000);
+INSERT 0 5
+postgres=# \copy employees TO 'C:\Users\user\Desktop\employees_pipe.txt' WITH DELIMITER '|' NULL 'N/A' CSV HEADER;
+COPY 5
+postgres=# DROP TABLE IF EXISTS new_employees;
+DROP TABLE
+postgres=#
+postgres=# CREATE TABLE new_employees (
+postgres(#     first_name VARCHAR(50),
+postgres(#     last_name VARCHAR(50),
+postgres(#     email VARCHAR(100)
+postgres(# );
+CREATE TABLE
+
+postgres=#
+postgres=# \copy new_employees(first_name, last_name, email) FROM 'C:\Valeriya\new_employees.csv' WITH CSV HEADER;
+COPY 3
+postgres=# SELECT * FROM new_employees ORDER BY first_name;
+ first_name | last_name |      email
+------------+-----------+-----------------
+ Evelyn     | Kim       | evelyn@auca.kg
+ Michael    | Park      | michael@auca.kg
+ Sophie     | Lee       | sophie@auca.kg
+(3 rows)
+
+
+postgres=# \copy (SELECT first_name, last_name, salary FROM employees WHERE department = 'Engineering') TO 'C:\Valeriya\engineering_employees.csv' WITH CSV HEADER;
+COPY 2
+postgres=# SELECT * FROM employees ORDER BY employee_id;
+ employee_id | first_name | last_name | department  | salary
+-------------+------------+-----------+-------------+--------
+           1 | Valeriya   | Pan       | Engineering |  90000
+           2 | Alice      | Johnson   | Engineering |  87000
+           3 | Bob        | Smith     | Sales       |  76000
+           4 | Carol      | Davis     | Sales       |  82000
+           5 | David      | Lee       | Marketing   |  71000
+(5 rows)
+
+
+postgres=# SELECT * FROM new_employees ORDER BY first_name;
+ first_name | last_name |      email
+------------+-----------+-----------------
+ Evelyn     | Kim       | evelyn@auca.kg
+ Michael    | Park      | michael@auca.kg
+ Sophie     | Lee       | sophie@auca.kg
+(3 rows)
+
+
+postgres=#
