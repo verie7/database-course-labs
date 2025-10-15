@@ -1,0 +1,82 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE data_ops_lab;
+CREATE DATABASE
+postgres=# \c data_ops_lab
+You are now connected to database "data_ops_lab" as user "postgres".
+data_ops_lab=# CREATE TABLE students (
+data_ops_lab(#     student_id SERIAL PRIMARY KEY,
+data_ops_lab(#     first_name VARCHAR(50),
+data_ops_lab(#     last_name VARCHAR(50),
+data_ops_lab(#     birth_date DATE
+data_ops_lab(# );
+CREATE TABLE
+data_ops_lab=# INSERT INTO students (first_name, last_name, birth_date)
+data_ops_lab-# VALUES ('Valeriya', 'Pan', '2005-10-07');
+INSERT 0 1
+data_ops_lab=# INSERT INTO students (first_name, last_name, birth_date) VALUES
+data_ops_lab-# ('Ainura', 'Toktomamatova', '2001-09-23'),
+data_ops_lab-# ('Bakyt', 'Mamatov', '2003-01-15'),
+data_ops_lab-# ('Gulzat', 'Sultanova', '2002-07-30'),
+data_ops_lab-# ('Aibek', 'Sharshenov', '2002-05-12');
+INSERT 0 4
+data_ops_lab=# SELECT * FROM students;
+ student_id | first_name |   last_name   | birth_date
+------------+------------+---------------+------------
+          1 | Valeriya   | Pan           | 2005-10-07
+          2 | Ainura     | Toktomamatova | 2001-09-23
+          3 | Bakyt      | Mamatov       | 2003-01-15
+          4 | Gulzat     | Sultanova     | 2002-07-30
+          5 | Aibek      | Sharshenov    | 2002-05-12
+(5 rows)
+
+
+data_ops_lab=# UPDATE students
+data_ops_lab-# SET birth_date = '2002-05-15'
+data_ops_lab-# WHERE first_name = 'Aibek' AND last_name = 'Sharshenov';
+UPDATE 1
+data_ops_lab=# SELECT * FROM students WHERE first_name = 'Aibek';
+ student_id | first_name | last_name  | birth_date
+------------+------------+------------+------------
+          5 | Aibek      | Sharshenov | 2002-05-15
+(1 row)
+
+
+data_ops_lab=# DELETE FROM students
+data_ops_lab-# WHERE first_name = 'Gulzat' AND last_name = 'Sultanova';
+DELETE 1
+data_ops_lab=# DELETE FROM students
+data_ops_lab-# WHERE birth_date < '2002-01-01';
+DELETE 1
+data_ops_lab=# INSERT INTO students (first_name, last_name, birth_date) VALUES
+data_ops_lab-# ('Nursultan', 'Isakov', '2002-04-10'),
+data_ops_lab-# ('Meerim', 'Bekova', '2003-06-12'),
+data_ops_lab-# ('Tilek', 'Usubaliev', '2001-11-05');
+INSERT 0 3
+data_ops_lab=# UPDATE students
+data_ops_lab-# SET last_name = 'Bekov'
+data_ops_lab-# WHERE last_name IN ('Isakov', 'Usubaliev');
+UPDATE 2
+data_ops_lab=# DELETE FROM students
+data_ops_lab-# WHERE student_id IN (2, 3, 5);
+DELETE 2
+data_ops_lab=# SELECT * FROM students;
+ student_id | first_name | last_name | birth_date
+------------+------------+-----------+------------
+          1 | Valeriya   | Pan       | 2005-10-07
+          7 | Meerim     | Bekova    | 2003-06-12
+          6 | Nursultan  | Bekov     | 2002-04-10
+          8 | Tilek      | Bekov     | 2001-11-05
+(4 rows)
+
+
+data_ops_lab=#
