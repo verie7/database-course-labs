@@ -1,0 +1,87 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE view_lab;
+CREATE DATABASE
+postgres=# \c view_lab
+You are now connected to database "view_lab" as user "postgres".
+view_lab=# CREATE TABLE authors (
+view_lab(#     author_id SERIAL PRIMARY KEY,
+view_lab(#     author_name VARCHAR(100) NOT NULL
+view_lab(# );
+CREATE TABLE
+view_lab=# CREATE TABLE books (
+view_lab(#     book_id SERIAL PRIMARY KEY,
+view_lab(#     title VARCHAR(150) NOT NULL,
+view_lab(#     publication_year INT,
+view_lab(#     genre VARCHAR(50)
+view_lab(# );
+CREATE TABLE
+view_lab=# CREATE TABLE book_authors (
+view_lab(#     book_id INT REFERENCES books(book_id) ON DELETE CASCADE,
+view_lab(#     author_id INT REFERENCES authors(author_id) ON DELETE CASCADE,
+view_lab(#     PRIMARY KEY (book_id, author_id)
+view_lab(# );
+CREATE TABLE
+view_lab=# \dt
+            List of relations
+ Schema |     Name     | Type  |  Owner
+--------+--------------+-------+----------
+ public | authors      | table | postgres
+ public | book_authors | table | postgres
+ public | books        | table | postgres
+(3 rows)
+
+
+view_lab=# \d books
+                                           Table "public.books"
+      Column      |          Type          | Collation | Nullable |                Default
+------------------+------------------------+-----------+----------+----------------------------------------
+ book_id          | integer                |           | not null | nextval('books_book_id_seq'::regclass)
+ title            | character varying(150) |           | not null |
+ publication_year | integer                |           |          |
+ genre            | character varying(50)  |           |          |
+Indexes:
+    "books_pkey" PRIMARY KEY, btree (book_id)
+Referenced by:
+    TABLE "book_authors" CONSTRAINT "book_authors_book_id_fkey" FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+
+
+view_lab=# \d book_authors
+             Table "public.book_authors"
+  Column   |  Type   | Collation | Nullable | Default
+-----------+---------+-----------+----------+---------
+ book_id   | integer |           | not null |
+ author_id | integer |           | not null |
+Indexes:
+    "book_authors_pkey" PRIMARY KEY, btree (book_id, author_id)
+Foreign-key constraints:
+    "book_authors_author_id_fkey" FOREIGN KEY (author_id) REFERENCES authors(author_id) ON DELETE CASCADE
+    "book_authors_book_id_fkey" FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+
+
+view_lab=# INSERT INTO authors (author_name) VALUES ('George Orwell');
+INSERT 0 1
+view_lab=# INSERT INTO books (title, publication_year, genre) VALUES ('1984', 1949, 'Dystopian');
+INSERT 0 1
+view_lab=# INSERT INTO book_authors VALUES (1, 1);
+INSERT 0 1
+view_lab=# SELECT b.title, a.author_name
+view_lab-# FROM books b
+view_lab-# JOIN book_authors ba ON b.book_id = ba.book_id
+view_lab-# JOIN authors a ON ba.author_id = a.author_id;
+ title |  author_name
+-------+---------------
+ 1984  | George Orwell
+(1 row)
+
+
+view_lab=#
