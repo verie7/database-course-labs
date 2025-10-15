@@ -1,0 +1,138 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE transactions_lab;
+CREATE DATABASE
+postgres=# \c transactions_lab
+You are now connected to database "transactions_lab" as user "postgres".
+transactions_lab=# CREATE TABLE accounts (
+transactions_lab(#     account_id SERIAL PRIMARY KEY,
+transactions_lab(#     owner VARCHAR(50),
+transactions_lab(#     balance DECIMAL(10,2)
+transactions_lab(# );
+CREATE TABLE
+transactions_lab=# CREATE TABLE orders (
+transactions_lab(#     order_id SERIAL PRIMARY KEY,
+transactions_lab(#     customer_id INT,
+transactions_lab(#     total DECIMAL(10,2)
+transactions_lab(# );
+CREATE TABLE
+transactions_lab=# CREATE TABLE order_items (
+transactions_lab(#     item_id SERIAL PRIMARY KEY,
+transactions_lab(#     order_id INT,
+transactions_lab(#     product_id INT,
+transactions_lab(#     quantity INT
+transactions_lab(# );
+CREATE TABLE
+transactions_lab=# CREATE TABLE products (
+transactions_lab(#     product_id SERIAL PRIMARY KEY,
+transactions_lab(#     name VARCHAR(50),
+transactions_lab(#     price DECIMAL(10,2)
+transactions_lab(# );
+CREATE TABLE
+transactions_lab=# INSERT INTO accounts (owner, balance) VALUES
+transactions_lab-# ('Valeriya Pan', 1000),
+transactions_lab-# ('Alice Johnson', 500);
+INSERT 0 2
+transactions_lab=# INSERT INTO products (name, price) VALUES
+transactions_lab-# ('Laptop', 999.99),
+transactions_lab-# ('Mouse', 25.99),
+transactions_lab-# ('Keyboard', 79.99);
+INSERT 0 3
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+UPDATE 1
+transactions_lab=*# UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;
+UPDATE 1
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+UPDATE 1
+transactions_lab=*# UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;
+UPDATE 1
+transactions_lab=*# ROLLBACK;
+ROLLBACK
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# INSERT INTO orders (customer_id, total) VALUES (1, 250.00);
+INSERT 0 1
+transactions_lab=*# INSERT INTO order_items (order_id, product_id, quantity) VALUES (1, 101, 2);
+INSERT 0 1
+transactions_lab=*# UPDATE products SET price = price - 1 WHERE product_id = 101;
+UPDATE 0
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# INSERT INTO accounts (owner, balance) VALUES ('John Doe', 300);
+INSERT 0 1
+transactions_lab=*# INSERT INTO orders (customer_id, total) VALUES (currval('accounts_account_id_seq'), 100);
+INSERT 0 1
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN
+transactions_lab=*# SELECT * FROM accounts WHERE balance > 100;
+ account_id |     owner     | balance
+------------+---------------+---------
+          1 | Valeriya Pan  |  900.00
+          2 | Alice Johnson |  600.00
+          3 | John Doe      |  300.00
+(3 rows)
+
+
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# UPDATE accounts SET balance = balance + 50 WHERE account_id = 1;
+UPDATE 1
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN
+transactions_lab=*# SELECT * FROM accounts WHERE balance > 100;
+ account_id |     owner     | balance
+------------+---------------+---------
+          2 | Alice Johnson |  600.00
+          3 | John Doe      |  300.00
+          1 | Valeriya Pan  |  950.00
+(3 rows)
+
+
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN
+transactions_lab=*# UPDATE accounts SET balance = balance * 1.05;
+UPDATE 3
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=# BEGIN;
+BEGIN
+transactions_lab=*# INSERT INTO orders (customer_id, total) VALUES (1, 500.00);
+INSERT 0 1
+transactions_lab=*# SAVEPOINT sp1;
+SAVEPOINT
+transactions_lab=*# INSERT INTO order_items (order_id, product_id, quantity)
+transactions_lab-*# VALUES (currval('orders_order_id_seq'), 101, 2);
+INSERT 0 1
+transactions_lab=*# ROLLBACK TO SAVEPOINT sp1;
+ROLLBACK
+transactions_lab=*# INSERT INTO order_items (order_id, product_id, quantity)
+transactions_lab-*# VALUES (currval('orders_order_id_seq'), 102, 1);
+INSERT 0 1
+transactions_lab=*# COMMIT;
+COMMIT
+transactions_lab=#
