@@ -1,0 +1,220 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE querying_lab;
+CREATE DATABASE
+postgres=# \c querying_lab
+You are now connected to database "querying_lab" as user "postgres".
+querying_lab=# CREATE TABLE employees (
+querying_lab(#     id SERIAL PRIMARY KEY,
+querying_lab(#     name VARCHAR(100) NOT NULL,
+querying_lab(#     department VARCHAR(50),
+querying_lab(#     salary DECIMAL(10,2)
+querying_lab(# );
+CREATE TABLE
+querying_lab=# INSERT INTO employees (name, department, salary) VALUES
+querying_lab-# ('Valeriya Pan', 'Engineering', 90000),
+querying_lab-# ('Alice Johnson', 'Sales', 65000),
+querying_lab-# ('Bob Smith', 'Engineering', 110000),
+querying_lab-# ('Carol Davis', 'Marketing', 72000),
+querying_lab-# ('David Lee', 'Engineering', 58000),
+querying_lab-# ('Evelyn Brooks', 'Sales', 83000);
+INSERT 0 6
+querying_lab=# SELECT * FROM employees;
+ id |     name      | department  |  salary
+----+---------------+-------------+-----------
+  1 | Valeriya Pan  | Engineering |  90000.00
+  2 | Alice Johnson | Sales       |  65000.00
+  3 | Bob Smith     | Engineering | 110000.00
+  4 | Carol Davis   | Marketing   |  72000.00
+  5 | David Lee     | Engineering |  58000.00
+  6 | Evelyn Brooks | Sales       |  83000.00
+(6 rows)
+
+
+querying_lab=# SELECT name, department FROM employees;
+     name      | department
+---------------+-------------
+ Valeriya Pan  | Engineering
+ Alice Johnson | Sales
+ Bob Smith     | Engineering
+ Carol Davis   | Marketing
+ David Lee     | Engineering
+ Evelyn Brooks | Sales
+(6 rows)
+
+
+querying_lab=# SELECT name, salary, salary * 0.10 AS bonus
+querying_lab-# FROM employees;
+     name      |  salary   |   bonus
+---------------+-----------+------------
+ Valeriya Pan  |  90000.00 |  9000.0000
+ Alice Johnson |  65000.00 |  6500.0000
+ Bob Smith     | 110000.00 | 11000.0000
+ Carol Davis   |  72000.00 |  7200.0000
+ David Lee     |  58000.00 |  5800.0000
+ Evelyn Brooks |  83000.00 |  8300.0000
+(6 rows)
+
+
+querying_lab=# SELECT name, salary
+querying_lab-# FROM employees
+querying_lab-# WHERE department = 'Sales';
+     name      |  salary
+---------------+----------
+ Alice Johnson | 65000.00
+ Evelyn Brooks | 83000.00
+(2 rows)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE salary > 75000 AND department = 'Engineering';
+     name
+--------------
+ Valeriya Pan
+ Bob Smith
+(2 rows)
+
+
+querying_lab=# SELECT name, salary
+querying_lab-# FROM employees
+querying_lab-# WHERE salary BETWEEN 60000 AND 90000;
+     name      |  salary
+---------------+----------
+ Valeriya Pan  | 90000.00
+ Alice Johnson | 65000.00
+ Carol Davis   | 72000.00
+ Evelyn Brooks | 83000.00
+(4 rows)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE name LIKE 'A%';
+     name
+---------------
+ Alice Johnson
+(1 row)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE name LIKE '%son';
+     name
+---------------
+ Alice Johnson
+(1 row)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE name ILIKE 'v%';
+     name
+--------------
+ Valeriya Pan
+(1 row)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE name ~ '^[AB]';
+     name
+---------------
+ Alice Johnson
+ Bob Smith
+(2 rows)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE name !~ '^C';
+     name
+---------------
+ Valeriya Pan
+ Alice Johnson
+ Bob Smith
+ David Lee
+ Evelyn Brooks
+(5 rows)
+
+
+querying_lab=# CREATE TABLE sales (
+querying_lab(#     sale_id SERIAL PRIMARY KEY,
+querying_lab(#     employee_id INT REFERENCES employees(id),
+querying_lab(#     amount DECIMAL(10,2)
+querying_lab(# );
+CREATE TABLE
+querying_lab=# INSERT INTO sales (employee_id, amount) VALUES
+querying_lab-# (2, 1500),
+querying_lab-# (3, 800),
+querying_lab-# (6, 2500);
+INSERT 0 3
+querying_lab=# SELECT name
+querying_lab-# FROM employees
+querying_lab-# WHERE id IN (SELECT employee_id FROM sales WHERE amount > 1000);
+     name
+---------------
+ Alice Johnson
+ Evelyn Brooks
+(2 rows)
+
+
+querying_lab=# SELECT name
+querying_lab-# FROM employees e
+querying_lab-# WHERE EXISTS (
+querying_lab(#   SELECT 1
+querying_lab(#   FROM sales s
+querying_lab(#   WHERE s.employee_id = e.id AND s.amount > 1000
+querying_lab(# );
+     name
+---------------
+ Alice Johnson
+ Evelyn Brooks
+(2 rows)
+
+
+querying_lab=# SELECT name, salary,
+querying_lab-#   CASE
+querying_lab-#     WHEN salary > 100000 THEN 'Senior'
+querying_lab-#     WHEN salary BETWEEN 70000 AND 100000 THEN 'Mid-Level'
+querying_lab-#     ELSE 'Junior'
+querying_lab-#   END AS employee_level
+querying_lab-# FROM employees;
+     name      |  salary   | employee_level
+---------------+-----------+----------------
+ Valeriya Pan  |  90000.00 | Mid-Level
+ Alice Johnson |  65000.00 | Junior
+ Bob Smith     | 110000.00 | Senior
+ Carol Davis   |  72000.00 | Mid-Level
+ David Lee     |  58000.00 | Junior
+ Evelyn Brooks |  83000.00 | Mid-Level
+(6 rows)
+
+
+querying_lab=# WITH department_averages AS (
+querying_lab(#   SELECT department, AVG(salary) AS avg_salary
+querying_lab(#   FROM employees
+querying_lab(#   GROUP BY department
+querying_lab(# )
+querying_lab-# SELECT e.name, e.salary, e.department, da.avg_salary
+querying_lab-# FROM employees e
+querying_lab-# JOIN department_averages da ON e.department = da.department
+querying_lab-# WHERE e.salary > da.avg_salary;
+     name      |  salary   | department  |     avg_salary
+---------------+-----------+-------------+--------------------
+ Valeriya Pan  |  90000.00 | Engineering | 86000.000000000000
+ Bob Smith     | 110000.00 | Engineering | 86000.000000000000
+ Evelyn Brooks |  83000.00 | Sales       | 74000.000000000000
+(3 rows)
+
+
+querying_lab=#
