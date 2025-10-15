@@ -1,0 +1,237 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE advanced_lab;
+CREATE DATABASE
+postgres=# \c advanced_lab
+You are now connected to database "advanced_lab" as user "postgres".
+advanced_lab=# CREATE TABLE employees (
+advanced_lab(#     employee_id SERIAL PRIMARY KEY,
+advanced_lab(#     first_name VARCHAR(50),
+advanced_lab(#     last_name VARCHAR(50),
+advanced_lab(#     department VARCHAR(50),
+advanced_lab(#     salary DECIMAL(10,2),
+advanced_lab(#     manager_id INT REFERENCES employees(employee_id),
+advanced_lab(#     hire_date DATE
+advanced_lab(# );
+CREATE TABLE
+advanced_lab=# CREATE TABLE sales (
+advanced_lab(#     sale_id SERIAL PRIMARY KEY,
+advanced_lab(#     employee_id INT REFERENCES employees(employee_id),
+advanced_lab(#     sale_date DATE,
+advanced_lab(#     amount DECIMAL(10,2)
+advanced_lab(# );
+CREATE TABLE
+advanced_lab=# INSERT INTO employees (first_name, last_name, department, salary, manager_id, hire_date) VALUES
+advanced_lab-# ('Valeriya', 'Pan', 'Sales', 3000, NULL, '2022-01-15'),
+advanced_lab-# ('Alice', 'Johnson', 'Sales', 2500, 1, '2022-03-01'),
+advanced_lab-# ('Bob', 'Smith', 'HR', 2800, 1, '2022-02-20'),
+advanced_lab-# ('David', 'Lee', 'IT', 3200, 1, '2022-04-05');
+INSERT 0 4
+advanced_lab=# INSERT INTO sales (employee_id, sale_date, amount) VALUES
+advanced_lab-# (1, '2024-06-01', 1000),
+advanced_lab-# (2, '2024-06-03', 1500),
+advanced_lab-# (2, '2024-06-10', 1200),
+advanced_lab-# (4, '2024-06-07', 2000);
+INSERT 0 4
+advanced_lab=# SELECT first_name, last_name, salary
+advanced_lab-# FROM employees
+advanced_lab-# WHERE salary > (
+advanced_lab(#     SELECT AVG(salary) FROM employees
+advanced_lab(# );
+ first_name | last_name | salary
+------------+-----------+---------
+ Valeriya   | Pan       | 3000.00
+ David      | Lee       | 3200.00
+(2 rows)
+
+
+advanced_lab=# SELECT first_name, last_name
+advanced_lab-# FROM employees
+advanced_lab-# WHERE (department, salary) IN (
+advanced_lab(#     SELECT department, MAX(salary)
+advanced_lab(#     FROM employees
+advanced_lab(#     WHERE manager_id = 1
+advanced_lab(#     GROUP BY department
+advanced_lab(# );
+ first_name | last_name
+------------+-----------
+ Alice      | Johnson
+ Bob        | Smith
+ David      | Lee
+(3 rows)
+
+
+advanced_lab=# SELECT *
+advanced_lab-# FROM sales
+advanced_lab-# WHERE employee_id IN (
+advanced_lab(#     SELECT employee_id FROM employees WHERE department = 'Sales'
+advanced_lab(# );
+ sale_id | employee_id | sale_date  | amount
+---------+-------------+------------+---------
+       1 |           1 | 2024-06-01 | 1000.00
+       2 |           2 | 2024-06-03 | 1500.00
+       3 |           2 | 2024-06-10 | 1200.00
+(3 rows)
+
+
+advanced_lab=# WITH employee_sales AS (
+advanced_lab(#     SELECT employee_id, SUM(amount) AS total_sales
+advanced_lab(#     FROM sales
+advanced_lab(#     GROUP BY employee_id
+advanced_lab(# )
+advanced_lab-# SELECT e.first_name, e.last_name, es.total_sales
+advanced_lab-# FROM employees e
+advanced_lab-# LEFT JOIN employee_sales es ON e.employee_id = es.employee_id
+advanced_lab-# ORDER BY es.total_sales DESC;
+ first_name | last_name | total_sales
+------------+-----------+-------------
+ Bob        | Smith     |
+ Alice      | Johnson   |     2700.00
+ David      | Lee       |     2000.00
+ Valeriya   | Pan       |     1000.00
+(4 rows)
+
+
+advanced_lab=# WITH RECURSIVE org_chart AS (
+advanced_lab(#     SELECT employee_id, first_name, last_name, manager_id
+advanced_lab(#     FROM employees
+advanced_lab(#     WHERE manager_id IS NULL
+advanced_lab(#     UNION ALL
+advanced_lab(#     SELECT e.employee_id, e.first_name, e.last_name, e.manager_id
+advanced_lab(#     FROM employees e
+advanced_lab(#     INNER JOIN org_chart oc ON e.manager_id = oc.employee_id
+advanced_lab(# )
+advanced_lab-# SELECT * FROM org_chart;
+ employee_id | first_name | last_name | manager_id
+-------------+------------+-----------+------------
+           1 | Valeriya   | Pan       |
+           2 | Alice      | Johnson   |          1
+           3 | Bob        | Smith     |          1
+           4 | David      | Lee       |          1
+(4 rows)
+
+
+advanced_lab=# SELECT first_name, last_name FROM employees
+advanced_lab-# UNION
+advanced_lab-# SELECT first_name, last_name FROM employees WHERE manager_id IS NOT NULL;
+ first_name | last_name
+------------+-----------
+ Alice      | Johnson
+ Valeriya   | Pan
+ Bob        | Smith
+ David      | Lee
+(4 rows)
+
+
+advanced_lab=# SELECT employee_id FROM employees
+advanced_lab-# INTERSECT
+advanced_lab-# SELECT manager_id FROM employees WHERE manager_id IS NOT NULL;
+ employee_id
+-------------
+           1
+(1 row)
+
+
+advanced_lab=# SELECT employee_id FROM employees
+advanced_lab-# EXCEPT
+advanced_lab-# SELECT DISTINCT manager_id FROM employees WHERE manager_id IS NOT NULL;
+ employee_id
+-------------
+           3
+           4
+           2
+(3 rows)
+
+
+advanced_lab=# SELECT first_name, last_name, department, salary,
+advanced_lab-#        RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_salary_rank
+advanced_lab-# FROM employees;
+ first_name | last_name | department | salary  | dept_salary_rank
+------------+-----------+------------+---------+------------------
+ Bob        | Smith     | HR         | 2800.00 |                1
+ David      | Lee       | IT         | 3200.00 |                1
+ Valeriya   | Pan       | Sales      | 3000.00 |                1
+ Alice      | Johnson   | Sales      | 2500.00 |                2
+(4 rows)
+
+
+advanced_lab=# SELECT first_name, last_name, salary,
+advanced_lab-#        LAG(salary) OVER (ORDER BY hire_date) AS prev_salary,
+advanced_lab-#        LEAD(salary) OVER (ORDER BY hire_date) AS next_salary
+advanced_lab-# FROM employees;
+ first_name | last_name | salary  | prev_salary | next_salary
+------------+-----------+---------+-------------+-------------
+ Valeriya   | Pan       | 3000.00 |             |     2800.00
+ Bob        | Smith     | 2800.00 |     3000.00 |     2500.00
+ Alice      | Johnson   | 2500.00 |     2800.00 |     3200.00
+ David      | Lee       | 3200.00 |     2500.00 |
+(4 rows)
+
+
+advanced_lab=# SELECT first_name,
+advanced_lab-#        SUM(CASE WHEN EXTRACT(MONTH FROM sale_date) = 6 THEN amount ELSE 0 END) AS june_sales
+advanced_lab-# FROM employees e
+advanced_lab-# LEFT JOIN sales s ON e.employee_id = s.employee_id
+advanced_lab-# GROUP BY first_name;
+ first_name | june_sales
+------------+------------
+ David      |    2000.00
+ Valeriya   |    1000.00
+ Alice      |    2700.00
+ Bob        |          0
+(4 rows)
+
+
+advanced_lab=# SELECT first_name, 'June' AS month, june_sales AS amount
+advanced_lab-# FROM (
+advanced_lab(#     SELECT first_name,
+advanced_lab(#            SUM(CASE WHEN EXTRACT(MONTH FROM sale_date) = 6 THEN amount ELSE 0 END) AS june_sales
+advanced_lab(#     FROM employees e
+advanced_lab(#     LEFT JOIN sales s ON e.employee_id = s.employee_id
+advanced_lab(#     GROUP BY first_name
+advanced_lab(# ) AS pivoted;
+ first_name | month | amount
+------------+-------+---------
+ David      | June  | 2000.00
+ Valeriya   | June  | 1000.00
+ Alice      | June  | 2700.00
+ Bob        | June  |       0
+(4 rows)
+
+
+advanced_lab=# SELECT first_name, last_name, salary
+advanced_lab-# FROM employees
+advanced_lab-# WHERE salary > 2500 AND department <> 'HR'
+advanced_lab-# ORDER BY
+advanced_lab-#     CASE department
+advanced_lab-#         WHEN 'Sales' THEN 1
+advanced_lab-#         WHEN 'IT' THEN 2
+advanced_lab-#         ELSE 3
+advanced_lab-#     END, salary DESC;
+ first_name | last_name | salary
+------------+-----------+---------
+ Valeriya   | Pan       | 3000.00
+ David      | Lee       | 3200.00
+(2 rows)
+
+
+advanced_lab=# EXPLAIN SELECT * FROM sales WHERE amount > 1000;
+                       QUERY PLAN
+---------------------------------------------------------
+ Seq Scan on sales  (cost=0.00..28.12 rows=483 width=28)
+   Filter: (amount > '1000'::numeric)
+(2 rows)
+
+
+advanced_lab=# CREATE INDEX idx_sales_amount ON sales(amount);
+CREATE INDEX
+advanced_lab=#
