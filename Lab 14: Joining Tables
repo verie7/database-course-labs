@@ -1,0 +1,213 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE join_lab;
+CREATE DATABASE
+postgres=# \c join_lab
+You are now connected to database "join_lab" as user "postgres".
+join_lab=# CREATE TABLE customers (
+join_lab(#     customer_id SERIAL PRIMARY KEY,
+join_lab(#     name VARCHAR(100),
+join_lab(#     email VARCHAR(100)
+join_lab(# );
+CREATE TABLE
+join_lab=# CREATE TABLE orders (
+join_lab(#     order_id SERIAL PRIMARY KEY,
+join_lab(#     customer_id INTEGER REFERENCES customers(customer_id),
+join_lab(#     order_date DATE,
+join_lab(#     total_amount DECIMAL(10,2)
+join_lab(# );
+CREATE TABLE
+join_lab=# INSERT INTO customers (name, email) VALUES
+join_lab-# ('Valeriya Pan', 'valeriya.pan@auca.kg'),
+join_lab-# ('Alice Johnson', 'alice@auca.kg'),
+join_lab-# ('Bob Smith', 'bob@auca.kg'),
+join_lab-# ('David Lee', 'david@auca.kg');
+INSERT 0 4
+join_lab=#
+join_lab=# INSERT INTO orders (customer_id, order_date, total_amount) VALUES
+join_lab-# (1, '2024-04-01', 250.00),
+join_lab-# (2, '2024-05-12', 120.00),
+join_lab-# (1, '2024-06-15', 300.00),
+join_lab-# (3, '2024-06-20', 180.00);
+INSERT 0 4
+join_lab=# SELECT c.name, c.email, o.order_date, o.total_amount
+join_lab-# FROM customers c
+join_lab-# INNER JOIN orders o ON c.customer_id = o.customer_id;
+     name      |        email         | order_date | total_amount
+---------------+----------------------+------------+--------------
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-04-01 |       250.00
+ Alice Johnson | alice@auca.kg        | 2024-05-12 |       120.00
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-06-15 |       300.00
+ Bob Smith     | bob@auca.kg          | 2024-06-20 |       180.00
+(4 rows)
+
+
+join_lab=#       name       |        email         | order_date | total_amount
+join_lab-# ------------------+----------------------+------------+--------------
+join_lab-#  Valeriya Pan     | valeriya.pan@auca.kg | 2024-04-01 | 250.00
+join_lab-#  Valeriya Pan     | valeriya.pan@auca.kg | 2024-06-15 | 300.00
+join_lab-#  Alice Johnson    | alice@auca.kg        | 2024-05-12 | 120.00
+join_lab-#  Bob Smith        | bob@auca.kg          | 2024-06-20 | 180.00
+
+join_lab=# SELECT c.name, c.email, o.order_date, o.total_amount
+join_lab-# FROM customers c
+join_lab-# LEFT JOIN orders o ON c.customer_id = o.customer_id;
+     name      |        email         | order_date | total_amount
+---------------+----------------------+------------+--------------
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-04-01 |       250.00
+ Alice Johnson | alice@auca.kg        | 2024-05-12 |       120.00
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-06-15 |       300.00
+ Bob Smith     | bob@auca.kg          | 2024-06-20 |       180.00
+ David Lee     | david@auca.kg        |            |
+(5 rows)
+
+
+join_lab=# SELECT c.name, c.email, o.order_date, o.total_amount
+join_lab-# FROM customers c
+join_lab-# RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+     name      |        email         | order_date | total_amount
+---------------+----------------------+------------+--------------
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-04-01 |       250.00
+ Alice Johnson | alice@auca.kg        | 2024-05-12 |       120.00
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-06-15 |       300.00
+ Bob Smith     | bob@auca.kg          | 2024-06-20 |       180.00
+(4 rows)
+
+
+join_lab=# SELECT c.name, c.email, o.order_date, o.total_amount
+join_lab-# FROM customers c
+join_lab-# FULL OUTER JOIN orders o ON c.customer_id = o.customer_id;
+     name      |        email         | order_date | total_amount
+---------------+----------------------+------------+--------------
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-04-01 |       250.00
+ Alice Johnson | alice@auca.kg        | 2024-05-12 |       120.00
+ Valeriya Pan  | valeriya.pan@auca.kg | 2024-06-15 |       300.00
+ Bob Smith     | bob@auca.kg          | 2024-06-20 |       180.00
+ David Lee     | david@auca.kg        |            |
+(5 rows)
+
+
+join_lab=# SELECT c.name, o.order_date
+join_lab-# FROM customers c
+join_lab-# CROSS JOIN orders o;
+     name      | order_date
+---------------+------------
+ Valeriya Pan  | 2024-04-01
+ Alice Johnson | 2024-04-01
+ Bob Smith     | 2024-04-01
+ David Lee     | 2024-04-01
+ Valeriya Pan  | 2024-05-12
+ Alice Johnson | 2024-05-12
+ Bob Smith     | 2024-05-12
+ David Lee     | 2024-05-12
+ Valeriya Pan  | 2024-06-15
+ Alice Johnson | 2024-06-15
+ Bob Smith     | 2024-06-15
+ David Lee     | 2024-06-15
+ Valeriya Pan  | 2024-06-20
+ Alice Johnson | 2024-06-20
+ Bob Smith     | 2024-06-20
+ David Lee     | 2024-06-20
+(16 rows)
+
+
+join_lab=# CREATE TABLE products (
+join_lab(#     product_id SERIAL PRIMARY KEY,
+join_lab(#     product_name VARCHAR(100),
+join_lab(#     price DECIMAL(10,2)
+join_lab(# );
+CREATE TABLE
+join_lab=# CREATE TABLE order_items (
+join_lab(#     item_id SERIAL PRIMARY KEY,
+join_lab(#     order_id INTEGER REFERENCES orders(order_id),
+join_lab(#     product_id INTEGER REFERENCES products(product_id),
+join_lab(#     quantity INT
+join_lab(# );
+CREATE TABLE
+join_lab=# INSERT INTO products (product_name, price) VALUES
+join_lab-# ('Notebook', 5.50),
+join_lab-# ('Pen', 1.20),
+join_lab-# ('Backpack', 25.00);
+INSERT 0 3
+join_lab=# INSERT INTO order_items (order_id, product_id, quantity) VALUES
+join_lab-# (1, 1, 3),
+join_lab-# (1, 2, 5),
+join_lab-# (3, 3, 1),
+join_lab-# (4, 1, 10);
+INSERT 0 4
+join_lab=# SELECT c.name, o.order_date, p.product_name, oi.quantity, p.price
+join_lab-# FROM customers c
+join_lab-# INNER JOIN orders o ON c.customer_id = o.customer_id
+join_lab-# INNER JOIN order_items oi ON o.order_id = oi.order_id
+join_lab-# INNER JOIN products p ON oi.product_id = p.product_id
+join_lab-# ORDER BY c.name, o.order_date;
+     name     | order_date | product_name | quantity | price
+--------------+------------+--------------+----------+-------
+ Bob Smith    | 2024-06-20 | Notebook     |       10 |  5.50
+ Valeriya Pan | 2024-04-01 | Notebook     |        3 |  5.50
+ Valeriya Pan | 2024-04-01 | Pen          |        5 |  1.20
+ Valeriya Pan | 2024-06-15 | Backpack     |        1 | 25.00
+(4 rows)
+
+
+join_lab=# CREATE TABLE employees (
+join_lab(#     employee_id SERIAL PRIMARY KEY,
+join_lab(#     name VARCHAR(100),
+join_lab(#     manager_id INT REFERENCES employees(employee_id)
+join_lab(# );
+CREATE TABLE
+join_lab=# INSERT INTO employees (name, manager_id) VALUES
+join_lab-# ('Valeriya Pan', NULL),
+join_lab-# ('Alice Johnson', 1),
+join_lab-# ('Bob Smith', 1),
+join_lab-# ('David Lee', 2);
+INSERT 0 4
+join_lab=# SELECT e1.name AS employee, e2.name AS manager
+join_lab-# FROM employees e1
+join_lab-# LEFT JOIN employees e2 ON e1.manager_id = e2.employee_id;
+   employee    |    manager
+---------------+---------------
+ Valeriya Pan  |
+ Alice Johnson | Valeriya Pan
+ Bob Smith     | Valeriya Pan
+ David Lee     | Alice Johnson
+(4 rows)
+
+
+join_lab=# SELECT c.name, o.order_date, o.total_amount
+join_lab-# FROM customers c
+join_lab-# INNER JOIN orders o ON c.customer_id = o.customer_id
+join_lab-# WHERE o.order_date >= '2024-05-01' AND o.total_amount > 150;
+     name     | order_date | total_amount
+--------------+------------+--------------
+ Valeriya Pan | 2024-06-15 |       300.00
+ Bob Smith    | 2024-06-20 |       180.00
+(2 rows)
+
+
+join_lab=# CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX
+join_lab=# CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX
+join_lab=# CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+CREATE INDEX
+join_lab=# SELECT c.name
+join_lab-# FROM customers c
+join_lab-# LEFT JOIN orders o ON c.customer_id = o.customer_id
+join_lab-# WHERE o.customer_id IS NULL;
+   name
+-----------
+ David Lee
+(1 row)
+
+
+join_lab=#
