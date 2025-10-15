@@ -1,0 +1,269 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres:
+psql (17.6)
+WARNING: Console code page (866) differs from Windows code page (1251)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE aggregate_lab;
+CREATE DATABASE
+postgres=# \c aggregate_lab
+You are now connected to database "aggregate_lab" as user "postgres".
+aggregate_lab=# CREATE TABLE employees (
+aggregate_lab(#     id SERIAL PRIMARY KEY,
+aggregate_lab(#     first_name VARCHAR(50),
+aggregate_lab(#     department VARCHAR(50),
+aggregate_lab(#     salary DECIMAL(10,2),
+aggregate_lab(#     age INT,
+aggregate_lab(#     hire_date DATE
+aggregate_lab(# );
+CREATE TABLE
+aggregate_lab=# INSERT INTO employees (first_name, department, salary, age, hire_date) VALUES
+aggregate_lab-# ('Valeriya', 'Engineering', 90000, 19, '2024-04-01'),
+aggregate_lab-# ('Alice', 'Sales', 65000, 27, '2023-09-15'),
+aggregate_lab-# ('Bob', 'Engineering', 110000, 31, '2022-06-20'),
+aggregate_lab-# ('Carol', 'Marketing', 72000, 29, '2021-03-25'),
+aggregate_lab-# ('David', 'Engineering', 58000, 41, '2020-10-10'),
+aggregate_lab-# ('Evelyn', 'Sales', 83000, 33, '2024-02-11'),
+aggregate_lab-# ('Frank', 'Marketing', 76000, 25, '2023-01-17');
+INSERT 0 7
+aggregate_lab=# SELECT COUNT(*) AS total_employees
+aggregate_lab-# FROM employees;
+ total_employees
+-----------------
+               7
+(1 row)
+
+
+aggregate_lab=# SELECT COUNT(DISTINCT department) AS unique_departments
+aggregate_lab-# FROM employees;
+ unique_departments
+--------------------
+                  3
+(1 row)
+
+
+aggregate_lab=# SELECT SUM(salary) AS total_salaries
+aggregate_lab-# FROM employees;
+ total_salaries
+----------------
+      554000.00
+(1 row)
+
+
+aggregate_lab=# SELECT department, SUM(salary) AS total_salary
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  | total_salary
+-------------+--------------
+ Marketing   |    148000.00
+ Engineering |    258000.00
+ Sales       |    148000.00
+(3 rows)
+
+
+aggregate_lab=# SELECT AVG(salary) AS avg_salary
+aggregate_lab-# FROM employees;
+     avg_salary
+--------------------
+ 79142.857142857143
+(1 row)
+
+
+aggregate_lab=# SELECT department, AVG(salary) AS avg_salary
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  |     avg_salary
+-------------+--------------------
+ Marketing   | 74000.000000000000
+ Engineering | 86000.000000000000
+ Sales       | 74000.000000000000
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     MAX(salary) AS highest_salary,
+aggregate_lab-#     MIN(salary) AS lowest_salary
+aggregate_lab-# FROM employees;
+ highest_salary | lowest_salary
+----------------+---------------
+      110000.00 |      58000.00
+(1 row)
+
+
+aggregate_lab=# SELECT department, MAX(hire_date) AS latest_hire
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  | latest_hire
+-------------+-------------
+ Marketing   | 2023-01-17
+ Engineering | 2024-04-01
+ Sales       | 2024-02-11
+(3 rows)
+
+
+aggregate_lab=# SELECT department, STRING_AGG(first_name, ', ') AS employee_names
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  |    employee_names
+-------------+----------------------
+ Marketing   | Carol, Frank
+ Engineering | Valeriya, Bob, David
+ Sales       | Alice, Evelyn
+(3 rows)
+
+
+aggregate_lab=# SELECT department, ARRAY_AGG(salary) AS salary_array
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  |         salary_array
+-------------+-------------------------------
+ Marketing   | {72000.00,76000.00}
+ Engineering | {90000.00,110000.00,58000.00}
+ Sales       | {65000.00,83000.00}
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     department,
+aggregate_lab-#     STDDEV(salary) AS salary_std_dev,
+aggregate_lab-#     VARIANCE(salary) AS salary_variance
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  |  salary_std_dev   |   salary_variance
+-------------+-------------------+----------------------
+ Marketing   | 2828.427124746190 | 8000000.000000000000
+ Engineering |    26229.75409721 |   688000000.00000000
+ Sales       |    12727.92206136 |   162000000.00000000
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     department,
+aggregate_lab-#     COUNT(*) AS employee_count,
+aggregate_lab-#     AVG(salary) AS avg_salary
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  | employee_count |     avg_salary
+-------------+----------------+--------------------
+ Marketing   |              2 | 74000.000000000000
+ Engineering |              3 | 86000.000000000000
+ Sales       |              2 | 74000.000000000000
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     department,
+aggregate_lab-#     COUNT(*) AS employee_count
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department
+aggregate_lab-# HAVING COUNT(*) > 2;
+ department  | employee_count
+-------------+----------------
+ Engineering |              3
+(1 row)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     CASE
+aggregate_lab-#         WHEN age < 30 THEN 'Under 30'
+aggregate_lab-#         WHEN age BETWEEN 30 AND 50 THEN '30-50'
+aggregate_lab-#         ELSE 'Over 50'
+aggregate_lab-#     END AS age_group,
+aggregate_lab-#     COUNT(*) AS employee_count,
+aggregate_lab-#     AVG(salary) AS avg_salary
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY
+aggregate_lab-#     CASE
+aggregate_lab-#         WHEN age < 30 THEN 'Under 30'
+aggregate_lab-#         WHEN age BETWEEN 30 AND 50 THEN '30-50'
+aggregate_lab-#         ELSE 'Over 50'
+aggregate_lab-#     END;
+ age_group | employee_count |     avg_salary
+-----------+----------------+--------------------
+ Under 30  |              4 | 75750.000000000000
+ 30-50     |              3 | 83666.666666666667
+(2 rows)
+
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     department,
+aggregate_lab-#     COUNT(*) AS dept_count,
+aggregate_lab-#     ROUND((COUNT(*)::numeric / (SELECT COUNT(*) FROM employees)) * 100, 2) AS percentage
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department
+aggregate_lab-# ORDER BY percentage DESC;
+ department  | dept_count | percentage
+-------------+------------+------------
+ Engineering |          3 |      42.86
+ Marketing   |          2 |      28.57
+ Sales       |          2 |      28.57
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     department,
+aggregate_lab-#     COUNT(*) AS total_employees,
+aggregate_lab-#     COUNT(CASE WHEN salary > 80000 THEN 1 END) AS high_earners,
+aggregate_lab-#     COUNT(CASE WHEN hire_date > '2023-01-01' THEN 1 END) AS recent_hires
+aggregate_lab-# FROM employees
+aggregate_lab-# GROUP BY department;
+ department  | total_employees | high_earners | recent_hires
+-------------+-----------------+--------------+--------------
+ Marketing   |               2 |            0 |            1
+ Engineering |               3 |            2 |            1
+ Sales       |               2 |            1 |            2
+(3 rows)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     id,
+aggregate_lab-#     first_name,
+aggregate_lab-#     department,
+aggregate_lab-#     salary,
+aggregate_lab-#     AVG(salary) OVER (PARTITION BY department) AS dept_avg_salary
+aggregate_lab-# FROM employees;
+ id | first_name | department  |  salary   |  dept_avg_salary
+----+------------+-------------+-----------+--------------------
+  1 | Valeriya   | Engineering |  90000.00 | 86000.000000000000
+  5 | David      | Engineering |  58000.00 | 86000.000000000000
+  3 | Bob        | Engineering | 110000.00 | 86000.000000000000
+  4 | Carol      | Marketing   |  72000.00 | 74000.000000000000
+  7 | Frank      | Marketing   |  76000.00 | 74000.000000000000
+  6 | Evelyn     | Sales       |  83000.00 | 74000.000000000000
+  2 | Alice      | Sales       |  65000.00 | 74000.000000000000
+(7 rows)
+
+
+aggregate_lab=# ALTER TABLE employees ADD COLUMN bonus DECIMAL(8,2);
+ALTER TABLE
+aggregate_lab=# UPDATE employees SET bonus = 5000 WHERE salary > 80000;
+UPDATE 3
+aggregate_lab=# SELECT
+aggregate_lab-#     COUNT(*) AS total_rows,
+aggregate_lab-#     COUNT(bonus) AS non_null_bonus,
+aggregate_lab-#     COUNT(*) - COUNT(bonus) AS null_bonus
+aggregate_lab-# FROM employees;
+ total_rows | non_null_bonus | null_bonus
+------------+----------------+------------
+          7 |              3 |          4
+(1 row)
+
+
+aggregate_lab=# SELECT
+aggregate_lab-#     SUM(bonus) AS total_bonus,
+aggregate_lab-#     AVG(bonus) AS avg_bonus,
+aggregate_lab-#     COUNT(bonus) AS employees_with_bonus
+aggregate_lab-# FROM employees;
+ total_bonus |       avg_bonus       | employees_with_bonus
+-------------+-----------------------+----------------------
+    15000.00 | 5000.0000000000000000 |                    3
+(1 row)
+
+
+aggregate_lab=#
